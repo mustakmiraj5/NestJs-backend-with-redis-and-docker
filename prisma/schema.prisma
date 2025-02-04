@@ -1,0 +1,78 @@
+// This is DSDP-Core Prisma schema file for auth service,
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// User model
+model User {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  email            String    @unique
+  password         String
+  country          String
+  resetToken       String? // Token for password reset
+  resetTokenExpiry DateTime? // Expiry time for the token
+  tried_attempts   Int       @default(0)
+  isDeleted        Boolean   @default(false)
+  isLocked         Boolean   @default(false)
+  isVerified       Boolean   @default(false)
+  isEnabled        Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  last_logged_at   DateTime?
+
+  Otp              Otp[]      @relation("UserOtps")
+  refreshTokens    String?
+
+  @@map("users")
+}
+
+
+//otp model
+model Otp {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  otp       Int
+  email     String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  user      User?    @relation("UserOtps", fields: [userId], references: [id])
+  userId    String?  @db.ObjectId
+
+  @@map("otp")
+}
+
+//Schemas for RBAC
+
+model Permission {
+  id    String             @id @default(auto()) @map("_id") @db.ObjectId
+  title String
+  slug  String             @unique
+  roles PermissionToRole[] @relation("PermissionToRole_permission")
+}
+
+model Role {
+  id          String             @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  permissions PermissionToRole[]
+  users       RoleToUser[]
+}
+
+model PermissionToRole {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id], name: "PermissionToRole_permission")
+}
+
+model RoleToUser {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id])
+}
