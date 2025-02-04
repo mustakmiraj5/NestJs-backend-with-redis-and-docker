@@ -6,8 +6,8 @@
 - Redis
 - Docker
 
-Run `npm install` to install dependencies.  
-Run `npm run start:dev` to run the project  
-or  
+Run `npm install` to install dependencies.  <br>
+Run `npm run start:dev` to run the project  <br>
+or  <br>
 Run `docker-compose up --build` to run the app in Docker  
  
